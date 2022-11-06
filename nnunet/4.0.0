@@ -1,0 +1,7 @@
+Collecting plotly
+  Downloading plotly-5.3.1-py2.py3-none-any.whl (23.9 MB)
+Collecting tenacity>=6.2.0
+  Downloading tenacity-8.0.1-py3-none-any.whl (24 kB)
+Requirement already satisfied: six in d:\programdata\anaconda3\envs\nnuev\lib\site-packages (from plotly) (1.16.0)
+Installing collected packages: tenacity, plotly
+Successfully installed plotly-5.3.1 tenacity-8.0.1

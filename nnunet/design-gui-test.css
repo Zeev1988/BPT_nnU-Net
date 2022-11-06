@@ -1,0 +1,59 @@
+body {
+    font-family: inherit;
+    line-height: 2;
+}
+.gradio_page .title {
+    padding: 1rem;
+    text-align: center;
+    font-size: 3rem;
+    line-height: 2.5rem;
+    font-weight: bold;
+}
+.gradio_interface[theme=default] .panel_header {
+    margin-top: .75rem;
+    margin-bottom: .75rem;
+    font-size: 1rem;
+    line-height: 1.25rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.gradio_interface[theme=default] .input_radio .radio_item.selected {
+    --tw-bg-opacity: 1;
+    --tw-text-opacity: 1;
+    color: black;
+    background: rgba(196, 43, 147, 0.5);
+}
+.gradio_interface[theme=default] .input_radio .selected .radio_circle {
+    border-width: 4px;
+    --tw-border-opacity: 1;
+    border-color: rgba(165, 38, 125, 0.81);
+}
+.gradio_interface[theme=default] .panel_button.submit {
+    --tw-bg-opacity: 1;
+    background-color: rgba(196, 43, 147, 0.5);
+}
+.gradio_page .description {
+    padding-bottom: 1rem;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-family: inherit;
+}
+.gradio_interface[theme=default] .input_radio {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.gradio_interface[theme=default] .input_checkbox .selected .checkbox {
+    --tw-bg-opacity: 1;
+    background-color: rgba(165, 38, 125, 0.81);
+}
+.gradio_interface[theme=default] .input_checkbox .checkbox_item.selected {
+    --tw-bg-opacity: 1;
+    background-color: rgba(245,158,11,var(--tw-bg-opacity));
+    --tw-text-opacity: 1;
+    color: rgba(255,255,255,var(--tw-text-opacity));
+    background-color: rgba(196, 43, 147, 0.5);
+}
