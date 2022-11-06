@@ -13,13 +13,6 @@ def predict(model, input_dir, output_dir):
                             overwrite_existing=True, mode="normal", overwrite_all_in_gpu=None, step_size=0.5)
 
 
-def delete_tmp_dirs(nnunet_tmp_dir, nnunet_res_dir):
-    if os.path.exists(nnunet_tmp_dir):
-        shutil.rmtree(nnunet_tmp_dir)
-
-    if os.path.exists(nnunet_res_dir):
-        shutil.rmtree(nnunet_res_dir)
-
 
 def greet(input_path, model, do_bpt):
     input_path = r'D:\users\zeevh\VOL\nnU-Net_data\original_data\TASMC\aaa'
@@ -45,7 +38,6 @@ def greet(input_path, model, do_bpt):
 
 
         nb_utils.pred_to_original_path(os.path.join(nnunet_tmp_dir, 'summary.csv'), nnunet_res_dir, out_path)
-        delete_tmp_dirs(nnunet_tmp_dir, nnunet_res_dir)
         sp.Popen(["explorer", out_path])
     return
 
