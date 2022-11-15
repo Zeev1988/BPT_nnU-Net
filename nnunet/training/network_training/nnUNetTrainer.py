@@ -36,11 +36,6 @@ from nnunet.training.data_augmentation.default_data_augmentation import default_
     default_2D_augmentation_params, get_default_augmentation, get_patch_size
 from nnunet.training.dataloading.dataset_loading import load_dataset, DataLoader3D, DataLoader2D, unpack_dataset
 from nnunet.training.loss_functions.dice_loss import DC_and_CE_loss, SDC_and_CE_loss
-from nnunet.training.loss_functions.dice_loss import SoftDiceLossSquared#Added by us
-from nnunet.training.loss_functions.tversky_loss import TverskyLoss #Added by us
-from nnunet.training.loss_functions.focal_loss import FocalLossV2 #Added by us
-from nnunet.training.loss_functions.focal_Tversky_loss import FocalTverskyLoss #Added by us
-from nnunet.training.loss_functions.TopK_loss import TopKLoss #Added by us
 from nnunet.training.network_training.network_trainer import NetworkTrainer
 from nnunet.utilities.nd_softmax import softmax_helper
 from nnunet.utilities.tensor_utilities import sum_tensor
