@@ -1,4 +1,4 @@
-name: nnuev
+name: bpt_nnunet
 channels:
   - simpleitk
   - pytorch

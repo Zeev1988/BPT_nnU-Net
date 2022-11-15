@@ -1,6 +1,4 @@
 import os
-import shutil
-
 import gradio as gr
 import nnunet.inference.predict as inf
 import subprocess as sp
@@ -15,8 +13,7 @@ def predict(model, input_dir, output_dir):
 
 
 def greet(input_path, model, do_bpt):
-    input_path = r'D:\users\zeevh\VOL\nnU-Net_data\original_data\TASMC\aaa'
-    model = r'D:\users\zeevh\nnUNet\nnUNet_trained_models\nnUNet\3d_fullres\Task000_ISBI_BASE_UNI\nnUNetTrainerV2__nnUNetPlansv2.1'
+    assert input_path, "No input"
     nb_utils = NnunetBptUtils()
     nb_utils.dir2csv(input_path)
     out_path = input_path
@@ -42,8 +39,8 @@ def greet(input_path, model, do_bpt):
     return
 
 def main():
-    input_path = gr.inputs.Textbox(lines=1, placeholder=None, numeric=False, type="str", label=None)
-    model = gr.inputs.Textbox(lines=1, placeholder=None, numeric=False, type="str", label=None)
+    input_path = gr.components.Textbox(lines=1, placeholder=None, label=None)
+    model = gr.components.Textbox(lines=1, placeholder=None, label=None)
     do_bpt = "checkbox"
 
     description = "Insert input folder with the images to run inference on, and output folder to save the labels produced. The inference will use the best model which was produced in training on the data set and configuration you state here."
@@ -51,12 +48,9 @@ def main():
         fn=greet,
         inputs=[input_path, model, do_bpt],
         outputs=["text"],
-        layout = "vertical",
-        title = "Inference",
-        description = description,
-        allow_screenshot = False,
-        allow_flagging = False)
-    iface.launch(inbrowser = True)
+        title="Inference",
+        description=description)
+    iface.launch(inbrowser=True)
 
 if __name__ == "__main__":
     main()
