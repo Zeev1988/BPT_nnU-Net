@@ -1,4 +1,4 @@
-### Ichilov preprocessing tool for MRI images with nnU-Net.
+# Ichilov preprocessing tool for MRI images with nnU-Net.
 This is an automated pipline for for MRI images preprocessing and segmentation for medical data.
 
 #The preprocessing stage is optional(!) and consists of:
@@ -7,7 +7,7 @@ This is an automated pipline for for MRI images preprocessing and segmentation f
 - N4 Bias Field Correction
 - Brain extruction (using https://github.com/MIC-DKFZ/HD-BET).
 
-# Requirments
+## Requirments
 nnU-Net requires a GPU! For inference, the GPU should have 4 GB of VRAM. For training nnU-Net models the GPU should have at 
 least 10 GB (popular non-datacenter options are the RTX 2080ti, RTX 3080 or RTX 3090). Due to the use of automated mixed 
 precision, fastest training times are achieved with the Volta architecture (Titan V, V100 GPUs) when installing pytorch 
