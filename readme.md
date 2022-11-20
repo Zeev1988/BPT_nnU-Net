@@ -1,5 +1,5 @@
-# Ichilov preprocessing tool for MRI images with nnU-Net.
-This is an automated pipline for for MRI images preprocessing and segmentation for medical data.
+# Ichilov preprocessing and segmentation tool for MRI images.
+This is an automated pipline for for MRI images preprocessing and segmentation(nnU-Net) for medical data.
 
 #The preprocessing stage is optional(!) and consists of:
 - DICOM to NIfTI conversion (if needed).
