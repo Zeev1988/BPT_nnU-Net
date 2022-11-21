@@ -25,9 +25,27 @@ In an anaconda prompt:
 conda create -n bpm__nnunet3.8 python=3.8 (yes to all)
 conda activate bpm__nnunet3.8
 conda config --set ssl_verify False
-cd <path> to project
+cd <path to project>
 pip install -r ./requirements.txt (yes to all)
 conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia (yes to all)
+```
+### Linux
+1. Go to https://github.com/SuperElastix/elastix/releases/tag/5.0.0 and download "elastix-5.0.0-linux.tar.bz2" and extract it wherever you like.
+2. Open a new terminal and do ```bash vi ~/.bashrc```
+3. Add the following lines to the file:
+```bash
+export PATH=<path to extracted folder>/elastix-5.0.0-Linux/bin:$PATH
+export LD_LIBRARY_PATH=<path to extracted folder>/elastix-5.0.0-Linux/lib:$LD_LIBRARY_PATH
+```
+4. Close the Terminal.
+5. Open a new terminal and do:
+```bash
+cd <path to project>
+virtualenv  bpm__nnunet3.8 -p python3.8
+virtualenv -p /usr/bin/python3.8 bpt__nnu-net3.8
+source bpt__nnunet3.8/bin/activate
+pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --trusted-host pypi.python.org -r ./requirements.txt -vvv
+pip install torch torchvision torchaudio 
 ```
 
 ## Prepare the data
