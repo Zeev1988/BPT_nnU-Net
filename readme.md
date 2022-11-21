@@ -19,6 +19,7 @@ fast as well. Note that future versions of pytorch may include cuDNN 8.0.2 or ne
 compiling from source will not be necessary.
 
 ## Installation
+###windows
 In an anaconda prompt:
 ```bash
 conda create -n bpm__nnunet3.8 python=3.8 (yes to all)
