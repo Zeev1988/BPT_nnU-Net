@@ -31,7 +31,7 @@ conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvi
 ```
 ### Linux
 1. Go to https://github.com/SuperElastix/elastix/releases/tag/5.0.0 and download "elastix-5.0.0-linux.tar.bz2" and extract it wherever you like.
-2. Open a new terminal and do ```bash vi ~/.bashrc```
+2. Open a new terminal and do ```vi ~/.bashrc```
 3. Add the following lines to the file:
 ```bash
 export PATH=<path to extracted folder>/elastix-5.0.0-Linux/bin:$PATH
