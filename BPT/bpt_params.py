@@ -1,5 +1,5 @@
 import os
-
+from sys import platform
 
 class BptParams:
 
@@ -13,8 +13,8 @@ class BptParams:
         self.reg_save_out: bool = False
         self.bet_save_out: bool = True
 
-        self.elastix_exe: str = r"D:\users\Yuval\BET_ZEEV\elastix-5.0.1-win64/elastix.exe"
-        self.elastix_params: str = r"D:\users\Yuval\BET_ZEEV\elastix-5.0.1-win64/Parameters_Rigid.txt"
+        self.elastix_exe: str = os.path.join(os.path.dirname(__file__), "elastix.exe") if platform == "win32" else "elastix"
+        self.elastix_params: str = os.path.join(os.path.dirname(__file__), "Parameters_Rigid.txt")
         self.folder_with_parameter_files = os.path.join(os.path.dirname(__file__), "HD_BET",
                                                         "hd-bet_params")
         # Those should match summaries column names
@@ -49,4 +49,3 @@ class BptParams:
         for key, val in params_external.items():
             if key in vars(self):
                 setattr(self, key, val)
-
