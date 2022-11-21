@@ -7,7 +7,9 @@ import os
 from pathlib import Path
 
 from BPT.bpt_params import BptParams
+import ssl
 
+gcontext = ssl.SSLContext()
 bpt_params = BptParams()
 
 
@@ -36,7 +38,7 @@ def maybe_download_parameters(fold=0, force_overwrite=False):
     if not os.path.isfile(out_filename):
         url = "https://zenodo.org/record/2540695/files/%d.model?download=1" % fold
         print("Downloading", url, "...")
-        data = urlopen(url).read()
+        data = urlopen(url, context=gcontext).read()
         with open(out_filename, 'wb') as f:
             f.write(data)
 
