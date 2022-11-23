@@ -1,8 +1,3 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
 import pandas as pd
 import os
 from tqdm import tqdm
@@ -21,8 +16,8 @@ RAW_SCANS_DIR = 'RAW_SCANS'
 
 class BrainPreProcessingTool:
 
-    def __init__(self, csv_dir, out_dir):
-        self.params = BptParams(csv_dir, out_dir)
+    def __init__(self, csv_dir, reg_fixed_mod, bet_fixed_mod, out_dir):
+        self.params = BptParams(csv_dir, reg_fixed_mod, bet_fixed_mod, out_dir)
         self.utils = BptUtils(self.params)
         # if external_settings_dict is not None and bool(external_settings_dict):
         #     self.params.set_params_from_dict(external_settings_dict)
