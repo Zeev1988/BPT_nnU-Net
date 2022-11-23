@@ -5,6 +5,8 @@ import subprocess as sp
 from BPT.bpt import BrainPreProcessingTool
 from nnunet_bpt_utils import NnunetBptUtils
 import tempfile
+from sys import platform
+
 
 def predict(model, input_dir, output_dir):
     inf.predict_from_folder(model, input_dir, output_dir, None, False, 6, 2, None, False, 1, True, mixed_precision=True,
@@ -35,7 +37,8 @@ def greet(input_path, model, do_bpt):
 
 
         nb_utils.pred_to_original_path(os.path.join(nnunet_tmp_dir, 'summary.csv'), nnunet_res_dir, out_path)
-        sp.Popen(["explorer", out_path])
+
+        sp.Popen(["explorer" if platform =="win32" else 'xdg-open', out_path])
     return
 
 def main():
