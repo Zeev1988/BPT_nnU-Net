@@ -115,7 +115,7 @@ class NnunetBptUtils:
                     ext = ''.join(pathlib.Path(row[col]).suffixes)
                     shutil.copy(row[col], os.path.join(out_scans_path,
                                                         f'{self.nnunet.prefix}_{index:03d}_{id:04d}{ext}'))
-                summary.append((index, f'{row[self.params.subject_col_name]}\{row[self.params.study_col_name]}'))
+                summary.append((index, os.path.join(row[self.params.subject_col_name], row[self.params.study_col_name])))
             else:
                 print(f'{row[self.params.subject_col_name]} - missing modalities')
 
