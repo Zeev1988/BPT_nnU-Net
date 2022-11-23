@@ -3,7 +3,7 @@ from sys import platform
 
 class BptParams:
 
-    def __init__(self, csv_path=None, out_path=None):
+    def __init__(self, csv_path=None, reg_fixed_mod=None, bet_fixed_mod=None, out_path=None):
         self.csv_path: str = csv_path
         self.out_path: str = out_path
         self.shrink_output: bool = True
@@ -27,14 +27,14 @@ class BptParams:
         self.flair_name: str = 'FLAIR'
         self.label_name: str = 'Label'
 
-        self.reg_fixed_module: str = self.t1ce_name  # T1, T2, FLAIR - must be valid or registration will fail
+        self.reg_fixed_module: str = self.flair_name if not reg_fixed_mod else reg_fixed_mod # T1, T2, FLAIR - must be valid or registration will fail
 
         self.modalities = [self.t1_name, self.t1ce_name, self.t2_name, self.flair_name, self.label_name]
 
         # bet params
         self.n4_fit_level: int = 4
         self.bet_device = 0  # either int (for device id) or 'cpu'
-        self.bet_fixed_module: str = self.t1ce_name  # T1C, T2, FLAIR - if not valid, bet will be done separately on each file
+        self.bet_fixed_module: str = self.t1ce_name  if not bet_fixed_mod else bet_fixed_mod # T1C, T2, FLAIR - if not valid, bet will be done separately on each file
 
         self.perform_reg: bool = True
         self.perform_n4: bool = True
