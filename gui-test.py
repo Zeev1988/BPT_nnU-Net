@@ -20,7 +20,7 @@ def greet(input_path, model, do_bpt, reg, bet):
     nb_utils.dir2csv(input_path)
     out_path = input_path
     if do_bpt:
-        bpt = BrainPreProcessingTool(os.path.join(input_path, 'summary.csv', ), input_pathת reg, bet)
+        bpt = BrainPreProcessingTool(os.path.join(input_path, 'summary.csv', ), reg, bet, input_pathת)
         out_path = bpt.preprocess()
         nb_utils.dir2csv(out_path)
 
