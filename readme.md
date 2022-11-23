@@ -22,8 +22,8 @@ compiling from source will not be necessary.
 ### windows
 In an anaconda prompt:
 ```bash
-conda create -n bpm__nnunet3.8 python=3.8 (yes to all)
-conda activate bpm__nnunet3.8
+conda create -n bpt__nnunet3.8 python=3.8 (yes to all)
+conda activate bpt__nnunet3.8
 conda config --set ssl_verify False
 cd <path to project>
 pip install -r ./requirements.txt (yes to all)
@@ -41,7 +41,7 @@ export LD_LIBRARY_PATH=<path to extracted folder>/elastix-5.0.0-Linux/lib:$LD_LI
 5. Open a new terminal and do:
 ```bash
 cd <path to project>
-virtualenv  bpm__nnunet3.8 -p python3.8
+virtualenv  bpt__nnunet3.8 -p python3.8
 virtualenv -p /usr/bin/python3.8 bpt__nnu-net3.8
 source bpt__nnunet3.8/bin/activate
 pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --trusted-host pypi.python.org -r ./requirements.txt -vvv
