@@ -68,4 +68,4 @@ with gr.Blocks() as demo:
     generate_btn.click(greet, [input_path, model, bpt, reg, bet], output)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(inbrowser=True)
