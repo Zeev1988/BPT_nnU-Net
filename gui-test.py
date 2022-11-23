@@ -14,7 +14,7 @@ def predict(model, input_dir, output_dir):
 
 
 
-def greet(input_path, model, do_bpt):
+def greet(input_path, model, do_bpt, reg, bet):
     assert input_path, "No input"
     nb_utils = NnunetBptUtils()
     nb_utils.dir2csv(input_path)
@@ -38,22 +38,34 @@ def greet(input_path, model, do_bpt):
 
         nb_utils.pred_to_original_path(os.path.join(nnunet_tmp_dir, 'summary.csv'), nnunet_res_dir, out_path)
 
-        sp.Popen(["explorer" if platform =="win32" else 'xdg-open', out_path])
+    sp.Popen(["explorer" if platform =="win32" else 'xdg-open', out_path])
     return
 
-def main():
-    input_path = gr.components.Textbox(lines=1, placeholder=None, label=None)
-    model = gr.components.Textbox(lines=1, placeholder=None, label=None)
-    do_bpt = "checkbox"
 
-    description = "Insert input folder with the images to run inference on, and output folder to save the labels produced. The inference will use the best model which was produced in training on the data set and configuration you state here."
-    iface = gr.Interface(
-        fn=greet,
-        inputs=[input_path, model, do_bpt],
-        outputs=["text"],
-        title="Inference",
-        description=description)
-    iface.launch(inbrowser=True)
+with gr.Blocks() as demo:
+    gr.Markdown(
+        """
+    # MRI brain images preprocessing and inference tool
+    """
+    )
+    input_path = gr.Textbox(lines=1, placeholder=None, label="Insert data location for preprocessing/inference")
+    model = gr.Textbox(lines=1, placeholder=None, label="Insert model location for inference")
+    bpt = gr.Checkbox(value=False, label="Do preprocessing")
+
+    with gr.Column(visible=False) as details_col:
+        reg = gr.Radio(choices=["FLAIR", "T1", "T1C", "T2"], label="Fix contrast for registration")
+        bet = gr.Radio(choices=["FLAIR", "T1", "T1C", "T2"], label="Fix contrast for brain extraction")
+
+    generate_btn = gr.Button("Generate")
+    output = gr.Textbox(label="Output")
+
+
+    def radio_groups_visible(bpt):
+        return gr.update(visible=bpt)
+
+
+    bpt.change(radio_groups_visible, bpt, details_col)
+    generate_btn.click(greet, [input_path, model, bpt, reg, bet], output)
 
 if __name__ == "__main__":
-    main()
+    demo.launch()
