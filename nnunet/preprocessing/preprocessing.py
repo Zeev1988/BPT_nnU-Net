@@ -36,11 +36,9 @@ def get_lowres_axis(new_spacing):
 
 
 def resample_patient(data, seg, original_spacing, target_spacing, order_data=3, order_seg=0, force_separate_z=False,
-                     cval_data=0, cval_seg=-1, order_z_data=0, order_z_seg=0,
+                     order_z_data=0, order_z_seg=0,
                      separate_z_anisotropy_threshold=RESAMPLING_SEPARATE_Z_ANISO_THRESHOLD):
     """
-    :param cval_seg:
-    :param cval_data:
     :param data:
     :param seg:
     :param original_spacing:
@@ -53,7 +51,6 @@ def resample_patient(data, seg, original_spacing, target_spacing, order_data=3, 
     :param order_z_data: only applies if do_separate_z is True
     :param separate_z_anisotropy_threshold: if max_spacing > separate_z_anisotropy_threshold * min_spacing (per axis)
     then resample along lowres axis with order_z_data/order_z_seg instead of order_data/order_seg
-
     :return:
     """
     assert not ((data is None) and (seg is None))
@@ -97,19 +94,18 @@ def resample_patient(data, seg, original_spacing, target_spacing, order_data=3, 
             pass
 
     if data is not None:
-        data_reshaped = resample_data_or_seg(data, new_shape, False, axis, order_data, do_separate_z, cval=cval_data,
+        data_reshaped = resample_data_or_seg(data, new_shape, False, axis, order_data, do_separate_z,
                                              order_z=order_z_data)
     else:
         data_reshaped = None
     if seg is not None:
-        seg_reshaped = resample_data_or_seg(seg, new_shape, True, axis, order_seg, do_separate_z, cval=cval_seg,
-                                            order_z=order_z_seg)
+        seg_reshaped = resample_data_or_seg(seg, new_shape, True, axis, order_seg, do_separate_z, order_z=order_z_seg)
     else:
         seg_reshaped = None
     return data_reshaped, seg_reshaped
 
 
-def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separate_z=False, cval=0, order_z=0):
+def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separate_z=False, order_z=0):
     """
     separate_z=True will resample with order 0 along z
     :param data:
@@ -118,11 +114,11 @@ def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separat
     :param axis:
     :param order:
     :param do_separate_z:
-    :param cval:
     :param order_z: only applies if do_separate_z is True
     :return:
     """
     assert len(data.shape) == 4, "data must be (c, x, y, z)"
+    assert len(new_shape) == len(data.shape) - 1
     if is_seg:
         resize_fn = resize_segmentation
         kwargs = OrderedDict()
@@ -130,10 +126,10 @@ def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separat
         resize_fn = resize
         kwargs = {'mode': 'edge', 'anti_aliasing': False}
     dtype_data = data.dtype
-    data = data.astype(float)
     shape = np.array(data[0].shape)
     new_shape = np.array(new_shape)
     if np.any(shape != new_shape):
+        data = data.astype(float)
         if do_separate_z:
             print("separate z, order in z is", order_z, "order inplane is", order)
             assert len(axis) == 1, "only one anisotropic axis supported"
@@ -150,12 +146,11 @@ def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separat
                 reshaped_data = []
                 for slice_id in range(shape[axis]):
                     if axis == 0:
-                        reshaped_data.append(resize_fn(data[c, slice_id], new_shape_2d, order, cval=cval, **kwargs))
+                        reshaped_data.append(resize_fn(data[c, slice_id], new_shape_2d, order, **kwargs).astype(dtype_data))
                     elif axis == 1:
-                        reshaped_data.append(resize_fn(data[c, :, slice_id], new_shape_2d, order, cval=cval, **kwargs))
+                        reshaped_data.append(resize_fn(data[c, :, slice_id], new_shape_2d, order, **kwargs).astype(dtype_data))
                     else:
-                        reshaped_data.append(resize_fn(data[c, :, :, slice_id], new_shape_2d, order, cval=cval,
-                                                       **kwargs))
+                        reshaped_data.append(resize_fn(data[c, :, :, slice_id], new_shape_2d, order, **kwargs).astype(dtype_data))
                 reshaped_data = np.stack(reshaped_data, axis)
                 if shape[axis] != new_shape[axis]:
 
@@ -174,8 +169,8 @@ def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separat
 
                     coord_map = np.array([map_rows, map_cols, map_dims])
                     if not is_seg or order_z == 0:
-                        reshaped_final_data.append(map_coordinates(reshaped_data, coord_map, order=order_z, cval=cval,
-                                                                   mode='nearest')[None])
+                        reshaped_final_data.append(map_coordinates(reshaped_data, coord_map, order=order_z,
+                                                                   mode='nearest')[None].astype(dtype_data))
                     else:
                         unique_labels = np.unique(reshaped_data)
                         reshaped = np.zeros(new_shape, dtype=dtype_data)
@@ -183,17 +178,17 @@ def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separat
                         for i, cl in enumerate(unique_labels):
                             reshaped_multihot = np.round(
                                 map_coordinates((reshaped_data == cl).astype(float), coord_map, order=order_z,
-                                                cval=cval, mode='nearest'))
+                                                mode='nearest'))
                             reshaped[reshaped_multihot > 0.5] = cl
-                        reshaped_final_data.append(reshaped[None])
+                        reshaped_final_data.append(reshaped[None].astype(dtype_data))
                 else:
-                    reshaped_final_data.append(reshaped_data[None])
+                    reshaped_final_data.append(reshaped_data[None].astype(dtype_data))
             reshaped_final_data = np.vstack(reshaped_final_data)
         else:
             print("no separate z, order", order)
             reshaped = []
             for c in range(data.shape[0]):
-                reshaped.append(resize_fn(data[c], new_shape, order, cval=cval, **kwargs)[None])
+                reshaped.append(resize_fn(data[c], new_shape, order, **kwargs)[None].astype(dtype_data))
             reshaped_final_data = np.vstack(reshaped)
         return reshaped_final_data.astype(dtype_data)
     else:
@@ -204,7 +199,6 @@ def resample_data_or_seg(data, new_shape, is_seg, axis=None, order=3, do_separat
 class GenericPreprocessor(object):
     def __init__(self, normalization_scheme_per_modality, use_nonzero_mask, transpose_forward: (tuple, list), intensityproperties=None):
         """
-
         :param normalization_scheme_per_modality: dict {0:'nonCT'}
         :param use_nonzero_mask: {0:False}
         :param intensityproperties:
@@ -215,6 +209,8 @@ class GenericPreprocessor(object):
         self.use_nonzero_mask = use_nonzero_mask
 
         self.resample_separate_z_anisotropy_threshold = RESAMPLING_SEPARATE_Z_ANISO_THRESHOLD
+        self.resample_order_data = 3
+        self.resample_order_seg = 1
 
     @staticmethod
     def load_cropped(cropped_output_dir, case_identifier):
@@ -249,7 +245,8 @@ class GenericPreprocessor(object):
         # remove nans
         data[np.isnan(data)] = 0
 
-        data, seg = resample_patient(data, seg, np.array(original_spacing_transposed), target_spacing, 3, 1,
+        data, seg = resample_patient(data, seg, np.array(original_spacing_transposed), target_spacing,
+                                     self.resample_order_data, self.resample_order_seg,
                                      force_separate_z=force_separate_z, order_z_data=0, order_z_seg=0,
                                      separate_z_anisotropy_threshold=self.resample_separate_z_anisotropy_threshold)
         after = {
@@ -296,13 +293,19 @@ class GenericPreprocessor(object):
                 data[c] = (data[c] - mn) / sd
                 if use_nonzero_mask[c]:
                     data[c][seg[-1] < 0] = 0
+            elif scheme == 'noNorm':
+                print('no intensity normalization')
+                pass
             else:
                 if use_nonzero_mask[c]:
                     mask = seg[-1] >= 0
+                    data[c][mask] = (data[c][mask] - data[c][mask].mean()) / (data[c][mask].std() + 1e-8)
+                    data[c][mask == 0] = 0
                 else:
-                    mask = np.ones(seg.shape[1:], dtype=bool)
-                data[c][mask] = (data[c][mask] - data[c][mask].mean()) / (data[c][mask].std() + 1e-8)
-                data[c][mask == 0] = 0
+                    mn = data[c].mean()
+                    std = data[c].std()
+                    # print(data[c].shape, data[c].dtype, mn, std)
+                    data[c] = (data[c] - mn) / (std + 1e-8)
         return data, seg, properties
 
     def preprocess_test_case(self, data_files, target_spacing, seg_file=None, force_separate_z=None):
@@ -356,7 +359,6 @@ class GenericPreprocessor(object):
     def run(self, target_spacings, input_folder_with_cropped_npz, output_folder, data_identifier,
             num_threads=default_num_threads, force_separate_z=None):
         """
-
         :param target_spacings: list of lists [[1.25, 1.25, 5]]
         :param input_folder_with_cropped_npz: dim: c, x, y, z | npz_file['data'] np.savez_compressed(fname.npz, data=arr)
         :param output_folder:
@@ -368,7 +370,7 @@ class GenericPreprocessor(object):
         print("npz folder:", input_folder_with_cropped_npz)
         print("output_folder:", output_folder)
         list_of_cropped_npz_files = subfiles(input_folder_with_cropped_npz, True, None, ".npz", True)
-        os.makedirs(output_folder, exist_ok=True)
+        maybe_mkdir_p(output_folder)
         num_stages = len(target_spacings)
         if not isinstance(num_threads, (list, tuple, np.ndarray)):
             num_threads = [num_threads] * num_stages
@@ -382,7 +384,7 @@ class GenericPreprocessor(object):
         for i in range(num_stages):
             all_args = []
             output_folder_stage = os.path.join(output_folder, data_identifier + "_stage%d" % i)
-            os.makedirs(output_folder_stage, exist_ok=True)
+            maybe_mkdir_p(output_folder_stage)
             spacing = target_spacings[i]
             for j, case in enumerate(list_of_cropped_npz_files):
                 case_identifier = get_case_identifier_from_npz(case)
@@ -392,6 +394,14 @@ class GenericPreprocessor(object):
             p.starmap(self._run_internal, all_args)
             p.close()
             p.join()
+
+
+class GenericPreprocessor_linearResampling(GenericPreprocessor):
+    def __init__(self, normalization_scheme_per_modality, use_nonzero_mask, transpose_forward: (tuple, list),
+                 intensityproperties=None):
+        super().__init__(normalization_scheme_per_modality, use_nonzero_mask, transpose_forward, intensityproperties)
+        self.resample_order_data = 1
+        self.resample_order_seg = 1
 
 
 class Preprocessor3DDifferentResampling(GenericPreprocessor):
@@ -466,6 +476,8 @@ class Preprocessor3DDifferentResampling(GenericPreprocessor):
                 data[c] = (data[c] - mn) / sd
                 if use_nonzero_mask[c]:
                     data[c][seg[-1] < 0] = 0
+            elif scheme == 'noNorm':
+                pass
             else:
                 if use_nonzero_mask[c]:
                     mask = seg[-1] >= 0
@@ -560,6 +572,8 @@ class Preprocessor3DBetterResampling(GenericPreprocessor):
                 data[c] = (data[c] - mn) / sd
                 if use_nonzero_mask[c]:
                     data[c][seg[-1] < 0] = 0
+            elif scheme == 'noNorm':
+                pass
             else:
                 if use_nonzero_mask[c]:
                     mask = seg[-1] >= 0
@@ -582,7 +596,7 @@ class PreprocessorFor2D(GenericPreprocessor):
         print("output_folder:", output_folder)
         list_of_cropped_npz_files = subfiles(input_folder_with_cropped_npz, True, None, ".npz", True)
         assert len(list_of_cropped_npz_files) != 0, "set list of files first"
-        os.makedirs(output_folder, exist_ok=True)
+        maybe_mkdir_p(output_folder)
         all_args = []
         num_stages = len(target_spacings)
 
@@ -592,7 +606,7 @@ class PreprocessorFor2D(GenericPreprocessor):
 
         for i in range(num_stages):
             output_folder_stage = os.path.join(output_folder, data_identifier + "_stage%d" % i)
-            os.makedirs(output_folder_stage, exist_ok=True)
+            maybe_mkdir_p(output_folder_stage)
             spacing = target_spacings[i]
             for j, case in enumerate(list_of_cropped_npz_files):
                 case_identifier = get_case_identifier_from_npz(case)
@@ -660,6 +674,8 @@ class PreprocessorFor2D(GenericPreprocessor):
                 data[c] = (data[c] - mn) / sd
                 if use_nonzero_mask[c]:
                     data[c][seg[-1] < 0] = 0
+            elif scheme == 'noNorm':
+                pass
             else:
                 if use_nonzero_mask[c]:
                     mask = seg[-1] >= 0
@@ -669,6 +685,183 @@ class PreprocessorFor2D(GenericPreprocessor):
                 data[c][mask == 0] = 0
         print("normalization done")
         return data, seg, properties
+
+
+class PreprocessorFor2D_edgeLength512(PreprocessorFor2D):
+    target_edge_size = 512
+
+    def resample_and_normalize(self, data, target_spacing, properties, seg=None, force_separate_z=None):
+        original_spacing_transposed = np.array(properties["original_spacing"])[self.transpose_forward]
+        before = {
+            'spacing': properties["original_spacing"],
+            'spacing_transposed': original_spacing_transposed,
+            'data.shape (data is transposed)': data.shape
+        }
+        data_shape = data.shape[-2:]
+        smaller_edge = min(data_shape)
+        target_edge_size = self.target_edge_size
+        scale_factor = target_edge_size / smaller_edge
+        new_shape = [1] + [int(np.round(i * scale_factor)) for i in data_shape]
+        print(new_shape)
+
+        data = resample_data_or_seg(data, new_shape, False, None, 3, False, 0)
+        seg = resample_data_or_seg(seg, new_shape, True, None, 1, False, 0)
+
+        after = {
+            'spacing': 'None',
+            'data.shape (data is resampled)': data.shape
+        }
+        print("before:", before, "\nafter: ", after, "\n")
+
+        if seg is not None:  # hippocampus 243 has one voxel with -2 as label. wtf?
+            seg[seg < -1] = 0
+
+        properties["size_after_resampling"] = data[0].shape
+        properties["spacing_after_resampling"] = target_spacing
+        use_nonzero_mask = self.use_nonzero_mask
+
+        assert len(self.normalization_scheme_per_modality) == len(data), "self.normalization_scheme_per_modality " \
+                                                                         "must have as many entries as data has " \
+                                                                         "modalities"
+        assert len(self.use_nonzero_mask) == len(data), "self.use_nonzero_mask must have as many entries as data" \
+                                                        " has modalities"
+
+        print("normalization...")
+
+        for c in range(len(data)):
+            scheme = self.normalization_scheme_per_modality[c]
+            if scheme == "CT":
+                # clip to lb and ub from train data foreground and use foreground mn and sd from training data
+                assert self.intensityproperties is not None, "ERROR: if there is a CT then we need intensity properties"
+                mean_intensity = self.intensityproperties[c]['mean']
+                std_intensity = self.intensityproperties[c]['sd']
+                lower_bound = self.intensityproperties[c]['percentile_00_5']
+                upper_bound = self.intensityproperties[c]['percentile_99_5']
+                data[c] = np.clip(data[c], lower_bound, upper_bound)
+                data[c] = (data[c] - mean_intensity) / std_intensity
+                if use_nonzero_mask[c]:
+                    data[c][seg[-1] < 0] = 0
+            elif scheme == "CT2":
+                # clip to lb and ub from train data foreground, use mn and sd form each case for normalization
+                assert self.intensityproperties is not None, "ERROR: if there is a CT then we need intensity properties"
+                lower_bound = self.intensityproperties[c]['percentile_00_5']
+                upper_bound = self.intensityproperties[c]['percentile_99_5']
+                mask = (data[c] > lower_bound) & (data[c] < upper_bound)
+                data[c] = np.clip(data[c], lower_bound, upper_bound)
+                mn = data[c][mask].mean()
+                sd = data[c][mask].std()
+                data[c] = (data[c] - mn) / sd
+                if use_nonzero_mask[c]:
+                    data[c][seg[-1] < 0] = 0
+            elif scheme == 'noNorm':
+                pass
+            else:
+                if use_nonzero_mask[c]:
+                    mask = seg[-1] >= 0
+                else:
+                    mask = np.ones(seg.shape[1:], dtype=bool)
+                data[c][mask] = (data[c][mask] - data[c][mask].mean()) / (data[c][mask].std() + 1e-8)
+                data[c][mask == 0] = 0
+        print("normalization done")
+        return data, seg, properties
+
+
+class PreprocessorFor2D_edgeLength768(PreprocessorFor2D_edgeLength512):
+    target_edge_size = 768
+
+
+class PreprocessorFor3D_LeaveOriginalZSpacing(GenericPreprocessor):
+    """
+    3d_lowres and 3d_fullres are not resampled along z!
+    """
+    def resample_and_normalize(self, data, target_spacing, properties, seg=None, force_separate_z=None):
+        """
+        if target_spacing[0] is None or nan we use original_spacing_transposed[0] (no resampling along z)
+        :param data:
+        :param target_spacing:
+        :param properties:
+        :param seg:
+        :param force_separate_z:
+        :return:
+        """
+        original_spacing_transposed = np.array(properties["original_spacing"])[self.transpose_forward]
+        before = {
+            'spacing': properties["original_spacing"],
+            'spacing_transposed': original_spacing_transposed,
+            'data.shape (data is transposed)': data.shape
+        }
+
+        # remove nans
+        data[np.isnan(data)] = 0
+        target_spacing = deepcopy(target_spacing)
+        if target_spacing[0] is None or np.isnan(target_spacing[0]):
+            target_spacing[0] = original_spacing_transposed[0]
+        #print(target_spacing, original_spacing_transposed)
+        data, seg = resample_patient(data, seg, np.array(original_spacing_transposed), target_spacing, 3, 1,
+                                     force_separate_z=force_separate_z, order_z_data=0, order_z_seg=0,
+                                     separate_z_anisotropy_threshold=self.resample_separate_z_anisotropy_threshold)
+        after = {
+            'spacing': target_spacing,
+            'data.shape (data is resampled)': data.shape
+        }
+        st = "before:" + str(before) + '\nafter' + str(after) + "\n"
+        print(st)
+
+        if seg is not None:  # hippocampus 243 has one voxel with -2 as label. wtf?
+            seg[seg < -1] = 0
+
+        properties["size_after_resampling"] = data[0].shape
+        properties["spacing_after_resampling"] = target_spacing
+        use_nonzero_mask = self.use_nonzero_mask
+
+        assert len(self.normalization_scheme_per_modality) == len(data), "self.normalization_scheme_per_modality " \
+                                                                         "must have as many entries as data has " \
+                                                                         "modalities"
+        assert len(self.use_nonzero_mask) == len(data), "self.use_nonzero_mask must have as many entries as data" \
+                                                        " has modalities"
+
+        for c in range(len(data)):
+            scheme = self.normalization_scheme_per_modality[c]
+            if scheme == "CT":
+                # clip to lb and ub from train data foreground and use foreground mn and sd from training data
+                assert self.intensityproperties is not None, "ERROR: if there is a CT then we need intensity properties"
+                mean_intensity = self.intensityproperties[c]['mean']
+                std_intensity = self.intensityproperties[c]['sd']
+                lower_bound = self.intensityproperties[c]['percentile_00_5']
+                upper_bound = self.intensityproperties[c]['percentile_99_5']
+                data[c] = np.clip(data[c], lower_bound, upper_bound)
+                data[c] = (data[c] - mean_intensity) / std_intensity
+                if use_nonzero_mask[c]:
+                    data[c][seg[-1] < 0] = 0
+            elif scheme == "CT2":
+                # clip to lb and ub from train data foreground, use mn and sd form each case for normalization
+                assert self.intensityproperties is not None, "ERROR: if there is a CT then we need intensity properties"
+                lower_bound = self.intensityproperties[c]['percentile_00_5']
+                upper_bound = self.intensityproperties[c]['percentile_99_5']
+                mask = (data[c] > lower_bound) & (data[c] < upper_bound)
+                data[c] = np.clip(data[c], lower_bound, upper_bound)
+                mn = data[c][mask].mean()
+                sd = data[c][mask].std()
+                data[c] = (data[c] - mn) / sd
+                if use_nonzero_mask[c]:
+                    data[c][seg[-1] < 0] = 0
+            elif scheme == 'noNorm':
+                pass
+            else:
+                if use_nonzero_mask[c]:
+                    mask = seg[-1] >= 0
+                else:
+                    mask = np.ones(seg.shape[1:], dtype=bool)
+                data[c][mask] = (data[c][mask] - data[c][mask].mean()) / (data[c][mask].std() + 1e-8)
+                data[c][mask == 0] = 0
+        return data, seg, properties
+
+    def run(self, target_spacings, input_folder_with_cropped_npz, output_folder, data_identifier,
+            num_threads=default_num_threads, force_separate_z=None):
+        for i in range(len(target_spacings)):
+            target_spacings[i][0] = None
+        super().run(target_spacings, input_folder_with_cropped_npz, output_folder, data_identifier,
+                    default_num_threads, force_separate_z)
 
 
 class PreprocessorFor3D_NoResampling(GenericPreprocessor):
@@ -741,6 +934,8 @@ class PreprocessorFor3D_NoResampling(GenericPreprocessor):
                 data[c] = (data[c] - mn) / sd
                 if use_nonzero_mask[c]:
                     data[c][seg[-1] < 0] = 0
+            elif scheme == 'noNorm':
+                pass
             else:
                 if use_nonzero_mask[c]:
                     mask = seg[-1] >= 0
@@ -748,37 +943,4 @@ class PreprocessorFor3D_NoResampling(GenericPreprocessor):
                     mask = np.ones(seg.shape[1:], dtype=bool)
                 data[c][mask] = (data[c][mask] - data[c][mask].mean()) / (data[c][mask].std() + 1e-8)
                 data[c][mask == 0] = 0
-        return data, seg, properties
-
-
-class PreprocessorFor2D_noNormalization(GenericPreprocessor):
-    def resample_and_normalize(self, data, target_spacing, properties, seg=None, force_separate_z=None):
-        original_spacing_transposed = np.array(properties["original_spacing"])[self.transpose_forward]
-        before = {
-            'spacing': properties["original_spacing"],
-            'spacing_transposed': original_spacing_transposed,
-            'data.shape (data is transposed)': data.shape
-        }
-        target_spacing[0] = original_spacing_transposed[0]
-        data, seg = resample_patient(data, seg, np.array(original_spacing_transposed), target_spacing, 3, 1,
-                                     force_separate_z=force_separate_z, order_z_data=0, order_z_seg=0,
-                                     separate_z_anisotropy_threshold=self.resample_separate_z_anisotropy_threshold)
-        after = {
-            'spacing': target_spacing,
-            'data.shape (data is resampled)': data.shape
-        }
-        print("before:", before, "\nafter: ", after, "\n")
-
-        if seg is not None:  # hippocampus 243 has one voxel with -2 as label. wtf?
-            seg[seg < -1] = 0
-
-        properties["size_after_resampling"] = data[0].shape
-        properties["spacing_after_resampling"] = target_spacing
-        use_nonzero_mask = self.use_nonzero_mask
-
-        assert len(self.normalization_scheme_per_modality) == len(data), "self.normalization_scheme_per_modality " \
-                                                                         "must have as many entries as data has " \
-                                                                         "modalities"
-        assert len(self.use_nonzero_mask) == len(data), "self.use_nonzero_mask must have as many entries as data" \
-                                                        " has modalities"
         return data, seg, properties
