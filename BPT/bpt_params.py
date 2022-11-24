@@ -14,7 +14,7 @@ class BptParams:
         self.bet_save_out: bool = True
 
         self.elastix_exe: str = os.path.join(os.path.dirname(__file__), "elastix", "elastix.exe") if platform == "win32" else "elastix"
-        self.elastix_params: str = os.path.join(os.path.dirname(__file__), "Parameters_Rigid.txt")
+        self.elastix_params: str = os.path.join(os.path.dirname(__file__), "elastix", "Parameters_Rigid.txt")
         self.folder_with_parameter_files = os.path.join(os.path.dirname(__file__), "HD_BET",
                                                         "hd-bet_params")
         # Those should match summaries column names
