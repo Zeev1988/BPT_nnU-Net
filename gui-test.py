@@ -6,7 +6,7 @@ from BPT.bpt import BrainPreProcessingTool
 from nnunet_bpt_utils import NnunetBptUtils
 import tempfile
 from sys import platform
-
+import shutil
 
 def predict(model, input_dir, output_dir):
     inf.predict_from_folder(model, input_dir, output_dir, None, False, 6, 2, None, False, 1, True, mixed_precision=True,
@@ -15,30 +15,38 @@ def predict(model, input_dir, output_dir):
 
 
 def greet(input_path, model, do_bpt, reg, bet):
-    assert input_path, "No input"
-    nb_utils = NnunetBptUtils()
-    nb_utils.dir2csv(input_path)
-    out_path = input_path
-    if do_bpt:
-        bpt = BrainPreProcessingTool(os.path.join(input_path, 'summary.csv', ), reg, bet, input_path)
-        out_path = bpt.preprocess()
-        nb_utils.dir2csv(out_path)
+    nnunet_tmp_dir = os.path.join(tempfile.gettempdir(), 'TMP')
+    nnunet_res_dir = os.path.join(tempfile.gettempdir(), 'RES')
+    try:        
+        assert input_path, "No input"
+        nb_utils = NnunetBptUtils()
+        nb_utils.dir2csv(input_path)
+        out_path = input_path
+        if do_bpt:
+            bpt = BrainPreProcessingTool(os.path.join(input_path, 'summary.csv', ), reg, bet, input_path)
+            out_path = bpt.preprocess()
+            nb_utils.dir2csv(out_path)
 
-    if model:
-        nnunet_tmp_dir = os.path.join(out_path, tempfile.gettempdir(), 'TMP')
-        os.makedirs(nnunet_tmp_dir, exist_ok=True)
+        if model:
+            os.makedirs(nnunet_tmp_dir, exist_ok=True)
+            os.makedirs(nnunet_res_dir, exist_ok=True)
 
-        nnunet_res_dir = os.path.join(out_path, tempfile.gettempdir(), 'RES')
-        os.makedirs(nnunet_res_dir, exist_ok=True)
-
-        modalities = nb_utils.get_requirements_from_model(model)
-        nb_utils.ichilov_to_nnunet_format(modalities, os.path.join(out_path, 'summary.csv'), nnunet_tmp_dir)
-        predict(model, nnunet_tmp_dir, nnunet_res_dir)
+            modalities = nb_utils.get_requirements_from_model(model)
+            nb_utils.ichilov_to_nnunet_format(modalities, os.path.join(out_path, 'summary.csv'), nnunet_tmp_dir)
+            predict(model, nnunet_tmp_dir, nnunet_res_dir)
 
 
-        nb_utils.pred_to_original_path(os.path.join(nnunet_tmp_dir, 'summary.csv'), nnunet_res_dir, out_path)
+            nb_utils.pred_to_original_path(os.path.join(nnunet_tmp_dir, 'summary.csv'), nnunet_res_dir, out_path)
 
-    sp.Popen(["explorer" if platform =="win32" else 'xdg-open', out_path])
+        sp.Popen(["explorer" if platform =="win32" else 'xdg-open', out_path])
+    except:
+        pass
+    
+    if os.path.exists(nnunet_tmp_dir):
+        shutil.rmtree(nnunet_tmp_dir, ignore_errors=True)
+    if os.path.exists(nnunet_res_dir):
+        shutil.rmtree(nnunet_res_dir, ignore_errors=True)
+    
     return
 
 
