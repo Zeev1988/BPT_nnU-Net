@@ -1,4 +1,4 @@
-# preprocessing and segmentation tool for MRI images.
+# Preprocessing and segmentation tool for MRI images.
 This is an automated pipline for for MRI images preprocessing and segmentation(nnU-Net) for medical data.
 Trained and tested for multiple sclerosis lesions segmentation
 
