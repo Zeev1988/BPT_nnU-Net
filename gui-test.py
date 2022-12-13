@@ -39,8 +39,8 @@ def greet(input_path, model, do_bpt, reg, bet):
             nb_utils.pred_to_original_path(os.path.join(nnunet_tmp_dir, 'summary.csv'), nnunet_res_dir, out_path)
 
         sp.Popen(["explorer" if platform =="win32" else 'xdg-open', out_path])
-    except:
-        pass
+    except Exception() as e:
+        print(e)
     
     if os.path.exists(nnunet_tmp_dir):
         shutil.rmtree(nnunet_tmp_dir, ignore_errors=True)
