@@ -78,13 +78,15 @@ class NnunetBptUtils:
     def pred_to_original_path(self, summary_path, res_path, original_folder):
         df = pd.read_csv(summary_path, na_filter='')
         conv_dict = {row[self.nnunet.subject_column]: row[self.nnunet.original_column] for _, row in df.iterrows()}
-        results = [f for f in os.listdir(res_path) if f.endswith("nii.gz")]
-        for res in results:
-            lbl_path = os.path.join(res_path, res)
-            ext = ''.join(pathlib.Path(lbl_path).suffixes)
-            shutil.copy(lbl_path,
+        results = [os.path.join(res_path, f) for f in os.listdir(res_path) if f.endswith("nii.gz")]
+        for lbl_path in results:
+            try:
+                ext = ''.join(pathlib.Path(lbl_path).suffixes)
+                shutil.copy(lbl_path,
                         os.path.join(original_folder, conv_dict[int(re.findall("(\d+)(?!.*\d)", lbl_path)[0])],
                                      f'prediction{ext}'))
+            except Exception as e:
+                print(e)
 
 
     def get_requirements_from_model(self, model_path):
